@@ -2,9 +2,21 @@
 import datetime
 import sublime, sublime_plugin
 
+#if _GNU
+
+#elif __ANDROID__
+
+#else
+
+#endif
+
 
 class SmartIfDefCommand(sublime_plugin.TextCommand):
     def _find_def(self, line):
+        '''
+        find pair of ifdef ... endif or ifdef ... else or ifdef ... elif,
+        and return the Region between ifdef and endif/else/elif.
+        '''
         start1 = end1 = line.end()
         i = 0
         while True:
@@ -32,7 +44,14 @@ class SmartIfDefCommand(sublime_plugin.TextCommand):
         return sublime.Region(start1, end1)
 
     def _find_endif(self, line):
+        '''
+            find 
+        '''
         start1 = end1 = line.end()
+        bg = self.view.find(r'#else', line.begin())
+        if bg is not None:
+            start1 = end1 = bg.end()
+
         i = 0
         while True:
             i += 1
@@ -78,7 +97,7 @@ class SmartIfDefCommand(sublime_plugin.TextCommand):
         line_text = self.view.substr(cur_line)
 
         ignore_regions = []
-        regs = self.view.find_all(r'#if')
+        regs = self.view.find_all(r'#if|#elif')
         for reg in regs:
             l = self.view.full_line(reg)
             ltxt = self.view.substr(l)
@@ -89,6 +108,8 @@ class SmartIfDefCommand(sublime_plugin.TextCommand):
                     # print("defined tags %r" % (ltxt))
                     if 'ifndef' in ltxt:
                         ignore_regions.append(self._find_def(l))
+                    elif 'elif' in ltxt:
+                        ignore_regions.append(self._find_ndef(l))
                     else:
                         ignore_regions.append(self._find_ndef(l))
 
@@ -97,6 +118,8 @@ class SmartIfDefCommand(sublime_plugin.TextCommand):
                     # print("not defined tags %r" % (ltxt))
                     if 'ifndef' in ltxt:
                         ignore_regions.append(self._find_ndef(l))
+                    elif 'elif' in ltxt:
+                        ignore_regions.append(self._find_def(l))
                     else:
                         ignore_regions.append(self._find_def(l))
 
