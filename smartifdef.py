@@ -125,3 +125,8 @@ class SmartIfDefCommand(sublime_plugin.TextCommand):
 
         # print("text %r" % line_text)
         self.view.add_regions('ifdef', ignore_regions, 'comment', 'circle', sublime.DRAW_NO_OUTLINE)
+
+
+class TriggerIfdefEvent(sublime_plugin.EventListener):
+        def on_post_save(self, view):
+            view.run_command('smart_if_def')
